@@ -6,6 +6,7 @@ import math
 import time
 import configparser as ConfigParser
 import random
+import serial
 
 async_mode = None
 
@@ -26,6 +27,7 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock() 
 
+ser = serial.Serial('/dev/tty.usbmodem112301', 9600) # middle USB port on my USB-hub
 
 def background_thread(args):
     count = 0  
@@ -33,12 +35,15 @@ def background_thread(args):
     dataList = []  
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)          
     while True:
+        serialData = ser.readline().decode()
+        print(serialData)
+        
         if args:
           A = dict(args).get('A')
           dbV = dict(args).get('db_value')
         else:
           A = 1
-          dbV = 'nieco'  
+          dbV = 'nieco'
         #print A
         print(dbV) 
         print(args)  
@@ -130,4 +135,4 @@ def test_disconnect():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=80, debug=True)
+    socketio.run(app, host="0.0.0.0", port=88, debug=True)
