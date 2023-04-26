@@ -14,7 +14,8 @@
 
       socket.on('my_response', function(msg) {
         console.log(msg.data);
-        $('#log').append('Received #'+msg.count+': '+msg.data+'<br>').html(); });
+        //$('#log').append('Received #'+msg.count+': '+msg.data+'<br>').html(); 
+      });
 
       $('form#emit').submit(function(event) {
           socket.emit('my_event', {value: $('#emit_value').val()});
@@ -48,7 +49,9 @@
   <form id="disconnect" method="POST" action="#">
     <input type="submit" value="Disconnect">
   </form> 
+<!-- 
   <h2>Receive:</h2>
   <div id="log"></div>
+-->
  </body>
 </html>

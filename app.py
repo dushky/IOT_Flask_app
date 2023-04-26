@@ -39,11 +39,12 @@ def background_thread(args):
         print(serialData)
         
         if args:
-          A = dict(args).get('A')
-          dbV = dict(args).get('db_value')
+            A = dict(args).get('A')
+            dbV = dict(args).get('db_value')
         else:
-          A = 1
-          dbV = 'nieco'
+            A = 1
+            dbV = 'nieco'
+
         #print A
         print(dbV) 
         print(args)  
@@ -52,23 +53,23 @@ def background_thread(args):
         dataCounter +=1
         prem = random.random()
         if dbV == 'start':
-          dataDict = {
-            "t": time.time(),
-            "x": dataCounter,
-            "y": float(A)*prem}
-          dataList.append(dataDict)
+            dataDict = {
+                "t": time.time(),
+                "x": dataCounter,
+                "y": float(A)*prem}
+            dataList.append(dataDict)
         else:
-          if len(dataList)>0:
-            print(str(dataList))
-            fuj = str(dataList).replace("'", "\"")
-            print(fuj)
-            cursor = db.cursor()
-            cursor.execute("SELECT MAX(id) FROM graph")
-            maxid = cursor.fetchone()
-            cursor.execute("INSERT INTO graph (id, hodnoty) VALUES (%s, %s)", (maxid[0] + 1, fuj))
-            db.commit()
-          dataList = []
-          dataCounter = 0
+            if len(dataList)>0:
+                print(str(dataList))
+                fuj = str(dataList).replace("'", "\"")
+                print(fuj)
+                cursor = db.cursor()
+                cursor.execute("SELECT MAX(id) FROM graph")
+                maxid = cursor.fetchone()
+                cursor.execute("INSERT INTO graph (id, hodnoty) VALUES (%s, %s)", (maxid[0] + 1, fuj))
+                db.commit()
+            dataList = []
+            dataCounter = 0
         socketio.emit('my_response',
                       {'data': float(A)*prem, 'count': count},
                       namespace='/test')  
@@ -84,20 +85,20 @@ def graph():
     
 @app.route('/db')
 def db():
-  db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
-  cursor = db.cursor()
-  cursor.execute('''SELECT  hodnoty FROM  graph WHERE id=1''')
-  rv = cursor.fetchall()
-  return str(rv)    
+    db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
+    cursor = db.cursor()
+    cursor.execute('''SELECT  hodnoty FROM  graph WHERE id=1''')
+    rv = cursor.fetchall()
+    return str(rv)    
 
 @app.route('/dbdata/<string:num>', methods=['GET', 'POST'])
 def dbdata(num):
-  db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
-  cursor = db.cursor()
-  print(num)
-  cursor.execute("SELECT hodnoty FROM  graph WHERE id=%s", num)
-  rv = cursor.fetchone()
-  return str(rv[0])
+    db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
+    cursor = db.cursor()
+    print(num)
+    cursor.execute("SELECT hodnoty FROM  graph WHERE id=%s", num)
+    rv = cursor.fetchone()
+    return str(rv[0])
     
 @socketio.on('my_event', namespace='/test')
 def test_message(message):   
