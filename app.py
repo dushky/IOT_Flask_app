@@ -35,9 +35,8 @@ def background_thread(args):
     dataList = []  
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)          
     while True:
-        serialData = ser.readline().decode()
-        print(serialData)
-        
+        serialData = ser.readline().decode().removesuffix("\r\n").split(",")     #[0] = distance, [1] = temperature, [2] = humidity
+
         if args:
             A = dict(args).get('A')
             dbV = dict(args).get('db_value')
@@ -54,9 +53,10 @@ def background_thread(args):
         prem = random.random()
         if dbV == 'start':
             dataDict = {
-                "t": time.time(),
-                "x": dataCounter,
-                "y": float(A)*prem}
+                "distance": serialData[0],
+                "temperature": serialData[1],
+                "humidity": serialData[2]
+                }
             dataList.append(dataDict)
         else:
             if len(dataList)>0:
@@ -64,9 +64,13 @@ def background_thread(args):
                 fuj = str(dataList).replace("'", "\"")
                 print(fuj)
                 cursor = db.cursor()
-                cursor.execute("SELECT MAX(id) FROM graph")
-                maxid = cursor.fetchone()
-                cursor.execute("INSERT INTO graph (id, hodnoty) VALUES (%s, %s)", (maxid[0] + 1, fuj))
+                cursor.execute("SELECT MAX(id) FROM sensors")
+                maxIdFromDB = cursor.fetchone()
+                maxid=0     # when the DB is empty
+                if(maxIdFromDB[0]): 
+                    maxid=maxIdFromDB[0]
+
+                cursor.execute("INSERT INTO sensors (id, data) VALUES (%s, %s)", (maxid + 1, fuj))
                 db.commit()
             dataList = []
             dataCounter = 0

@@ -1,29 +1,26 @@
-/*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp8266-nodemcu-hc-sr04-ultrasonic-arduino/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
+#include <DHT.h>
+
+
+//define sound velocity in cm/uS
+#define SOUND_VELOCITY 0.034
+
+#define DHTPIN 10
+#define DHTTYPE DHT11
 
 const int trigPin = 12;
 const int echoPin = 11;
 
-//define sound velocity in cm/uS
-#define SOUND_VELOCITY 0.034
-#define CM_TO_INCH 0.393701
-
 long duration;
 float distanceCm;
-float distanceInch;
+
+DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
+  dht.begin();
   Serial.begin(9600); // Starts the serial communication
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  delay(500);
 }
 
 void loop() {
@@ -37,12 +34,17 @@ void loop() {
   
   // Reads the echoPin, returns the sound wave travel time in microseconds
   duration = pulseIn(echoPin, HIGH);
-  
-  // Calculate the distance
   distanceCm = duration * SOUND_VELOCITY/2;
-    
-  // Prints the distance on the Serial Monitor
-  Serial.println(distanceCm);
-  
+
+
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  String output =  
+  String(distanceCm) + "," +
+  String(temperature) + "," + 
+  String(humidity);
+
+  Serial.println(output);
   delay(2000);
 }
