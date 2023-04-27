@@ -75,6 +75,11 @@ def background_thread(args):
 
                 cursor.execute("INSERT INTO sensors (id, data) VALUES (%s, %s)", (maxid + 1, fuj))
                 db.commit()
+
+                fo = open("static/files/data.txt","a+")    
+                val = fuj
+                fo.write("%s\r\n" %val)
+
             dataList = []
             dataCounter = 0
         socketio.emit('my_response',
@@ -99,6 +104,10 @@ def graphlive():
 def graphDB():
     return render_template('graphDB.html', async_mode=socketio.async_mode)
 
+@app.route('/graphFile', methods=['GET', 'POST'])
+def graphFile():
+    return render_template('graphFile.html', async_mode=socketio.async_mode)
+
 @app.route('/gaugelive', methods=['GET', 'POST'])
 def gaugelive():
     return render_template('gaugelive.html', async_mode=socketio.async_mode)
@@ -119,8 +128,7 @@ def dbdataAll():
     cursor.execute("SELECT * FROM  sensors")
     rv = cursor.fetchall()
     return json.dumps(rv)
-  
-  
+
 @app.route('/dbdata/<string:num>', methods=['GET', 'POST'])
 def dbdata(num):
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
@@ -129,6 +137,19 @@ def dbdata(num):
     cursor.execute("SELECT data FROM  sensors WHERE id=%s", [num])
     rv = cursor.fetchone()
     return str(rv[0])
+
+@app.route('/filedataAll', methods=['GET', 'POST'])
+def filedataAll():
+    fo = open("static/files/data.txt","r")
+    rows = fo.readlines()
+    return json.dumps(rows)
+
+@app.route('/filedata/<string:num>', methods=['GET', 'POST'])
+def filedata(num):
+    fo = open("static/files/data.txt","r")
+    rows = fo.readlines()
+    return rows[int(num)-1]
+
     
 @socketio.on('my_event', namespace='/test')
 def test_message(message):   

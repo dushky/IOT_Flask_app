@@ -23,8 +23,9 @@
       url: "/dbdataAll",
       success:function(data) 
       { 
-        data = JSON.parse(data);
-
+        data = JSON.parse(data);        
+        $('#db-values-table').html(
+        '<tr><th width="40px">id</th><th>hodnoty</th><th>akcia</th></tr>');
         for(item of data){
             $('#db-values-table').append(
                 '<tr>'+
@@ -52,6 +53,45 @@
             iframe.contentWindow.postMessage(data, '*');
         }
         
+        function plotGraphFromFile(id) {
+            var iframe = document.getElementById('file-graph-iframe');
+            var data = {message: id};
+            iframe.contentWindow.postMessage(data, '*');
+        }
+
+    function getFileValues() {
+        $.ajax({
+      type: "GET",
+      url: "/filedataAll",
+      success:function(data) 
+      { 
+        data = JSON.parse(data);  
+
+        $('#file-values-table').html(
+        '<tr><th width="40px">číslo riadku</th><th>hodnoty</th><th>akcia</th></tr>');
+        let counter = 1;
+        for(item of data){
+            $('#file-values-table').append(
+                '<tr>'+
+                    '<td class="id-number">'+
+                        counter+
+                    '</td>'+
+                    '<td> <div style="height: 1rem; overflow:hidden">'+
+                        item+
+                    '</div></td>'+
+                    '<td>'+
+                        '<button class="ui-button ui-widget ui-corner-all" onClick="plotGraphFromFile('+counter+')" style="background-color: #00cc66">vykresliť</button>'+
+                    '</td>'+
+                '</tr>')
+                .html(); 
+            counter++;
+        }
+      }
+    }).done(function( o ) {
+       // do something
+    });  
+    }
+    
      $(document).ready(function() {
       namespace = '/test';
       var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
@@ -105,7 +145,7 @@
           <li><a href="#tabs-2">Live graf</a></li>
           <li><a href="#tabs-3">Live ciferníky</a></li>
           <li onClick="getDBValues()"><a href="#tabs-4">Data z DB</a></li>
-          <li><a href="#tabs-5">lorem ipsum</a></li>
+          <li onClick="getFileValues()"><a href="#tabs-5">Data zo súboru</a></li>
         </ul>
         
         <div id="tabs-1">
@@ -125,23 +165,21 @@
         <div id="tabs-4">
             <h3>Dáta z databázy</h3>
             <table id="db-values-table">
-                <tr>
-                    <th width="40px">id</th>
-                    <th>hodnoty</th>
-                    <th>akcia</th>
-                </tr>
+
+            </table>
+
+            <iframe id="db-graph-iframe" src="/graphDB"  width="640" height="320"></iframe>
+        </div>
+
+        <div id="tabs-5">
+            <h3>Data zo súboru</h3>
+            <table id="file-values-table">
             </table>
  
-            <iframe id="db-graph-iframe" src="/graphDB"  width="640" height="320"></iframe>
+            <iframe id="file-graph-iframe" src="/graphFile"  width="640" height="320"></iframe>
  
-        </div>
-        <div id="tabs-5">
-            <p>Mauris eleifend est et turpis. Duis id erat. Suspendisse potenti. Aliquam vulputate, pede vel vehicula accumsan, mi neque rutrum erat, eu congue orci lorem eget lorem. Vestibulum non ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce sodales. Quisque eu urna vel enim commodo pellentesque. Praesent eu risus hendrerit ligula tempus pretium. Curabitur lorem enim, pretium nec, feugiat nec, luctus a, lacus.</p>
-            <p>Duis cursus. Maecenas ligula eros, blandit nec, pharetra at, semper at, magna. Nullam ac lacus. Nulla facilisi. Praesent viverra justo vitae neque. Praesent blandit adipiscing velit. Suspendisse potenti. Donec mattis, pede vel pharetra blandit, magna ligula faucibus eros, id euismod lacus dolor eget odio. Nam scelerisque. Donec non libero sed nulla mattis commodo. Ut sagittis. Donec nisi lectus, feugiat porttitor, tempor ac, tempor vitae, pede. Aenean vehicula velit eu tellus interdum rutrum. Maecenas commodo. Pellentesque nec elit. Fusce in lacus. Vivamus a libero vitae lectus hendrerit hendrerit.</p>
-            <button>A button element</button>
-            <button class="ui-button ui-widget ui-corner-all">A button element</button>
-        </div>
-      </div>
+        </div>      
+    </div>
 
 
     <!-- 
