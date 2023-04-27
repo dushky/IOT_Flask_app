@@ -7,6 +7,7 @@ import time
 import configparser as ConfigParser
 import random
 import serial
+import json
 
 async_mode = None
 
@@ -36,7 +37,9 @@ def background_thread(args):
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)          
     while True:
         serialData = ser.readline().decode().removesuffix("\r\n").split(",")     #[0] = distance, [1] = temperature, [2] = humidity
-
+        distance = serialData[0]
+        temperature = serialData[1]
+        humidity = serialData[2]
         if args:
             A = dict(args).get('A')
             dbV = dict(args).get('db_value')
@@ -53,9 +56,9 @@ def background_thread(args):
         prem = random.random()
         if dbV == 'start':
             dataDict = {
-                "distance": serialData[0],
-                "temperature": serialData[1],
-                "humidity": serialData[2]
+                "distance": distance,
+                "temperature": temperature,
+                "humidity": humidity
                 }
             dataList.append(dataDict)
         else:
@@ -75,7 +78,8 @@ def background_thread(args):
             dataList = []
             dataCounter = 0
         socketio.emit('my_response',
-                      {'data': float(A)*prem, 'count': count},
+                      {'data': json.dumps({"distance": distance, "temperature": temperature, "humidity": humidity}),
+                        'count': count},
                       namespace='/test')  
     db.close()
 

@@ -2,9 +2,20 @@
 <html>
  <head>
   <title>Flask-SocketIO Test</title>
-   <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+  
    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
-   <script type="text/javascript" charset="utf-8">
+   <link rel="stylesheet" href="static/libs/jquery-ui.min.css">
+   <script src="static/libs/jquery-3.2.1.min.js"></script>
+   <script src="static/libs/jquery-ui.min.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+
+    $(function() {
+        $("#tabs").tabs({
+            event: "click"
+        });
+    });
+
      $(document).ready(function() {
       namespace = '/test';
       var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
@@ -14,7 +25,8 @@
 
       socket.on('my_response', function(msg) {
         console.log(msg.data);
-        //$('#log').append('Received #'+msg.count+': '+msg.data+'<br>').html(); 
+        let data = JSON.parse(msg.data);
+        $('#live-data').append('<li> Received #'+msg.count+': '+ msg.data +'</li>').html(); 
       });
 
       $('form#emit').submit(function(event) {
@@ -39,19 +51,46 @@
     </script>
  </head>
  <body>
-  <h1>Flask-SocketIO Test</h1>
-  <h2>Send:</h2>
-  <form id="emit" method="POST" action='#'>
-    <input type="text" name="emit_value" id="emit_value" placeholder="Amplituda">
-    <input type="submit" value="Echo">
-  </form>
-  <button id="buttonVal" type="submit" value="start">Start</button>
-  <form id="disconnect" method="POST" action="#">
-    <input type="submit" value="Disconnect">
-  </form> 
-<!-- 
-  <h2>Receive:</h2>
-  <div id="log"></div>
--->
+
+        
+    <div id="tabs">
+        <ul>
+          <li><a href="#tabs-1">Výpis regulovaných hodnôt</a></li>
+          <li><a href="#tabs-2">Proin dolor</a></li>
+          <li><a href="#tabs-3">Aenean lacinia</a></li>
+        </ul>
+        <div id="tabs-1">
+          <h3>HODNOTY</h3>
+          
+              <h1>Flask-SocketIO Test</h1>
+              <h2>Send:</h2>
+              <form id="emit" method="POST" action='#'>
+                  <input type="text" name="emit_value" id="emit_value" placeholder="Amplituda">
+                  <input type="submit" value="Echo">
+              </form>
+              <button id="buttonVal" type="submit" value="start">Start</button>
+              <form id="disconnect" method="POST" action="#">
+                  <input type="submit" value="Disconnect">
+              </form> 
+              <ul id="live-data">
+          
+              </ul>
+        </div>
+        <div id="tabs-2">
+            <p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra massa metus id nunc. Duis scelerisque molestie turpis. Sed fringilla, massa eget luctus malesuada, metus eros molestie lectus, ut tempus eros massa ut dolor. Aenean aliquet fringilla sem. Suspendisse sed ligula in ligula suscipit aliquam. Praesent in eros vestibulum mi adipiscing adipiscing. Morbi facilisis. Curabitur ornare consequat nunc. Aenean vel metus. Ut posuere viverra nulla. Aliquam erat volutpat. Pellentesque convallis. Maecenas feugiat, tellus pellentesque pretium posuere, felis lorem euismod felis, eu ornare leo nisi vel felis. Mauris consectetur tortor et purus.</p>
+            <button>A button element</button>
+            <button class="ui-button ui-widget ui-corner-all">A button element</button>
+        </div>
+        <div id="tabs-3">
+          <p>Mauris eleifend est et turpis. Duis id erat. Suspendisse potenti. Aliquam vulputate, pede vel vehicula accumsan, mi neque rutrum erat, eu congue orci lorem eget lorem. Vestibulum non ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce sodales. Quisque eu urna vel enim commodo pellentesque. Praesent eu risus hendrerit ligula tempus pretium. Curabitur lorem enim, pretium nec, feugiat nec, luctus a, lacus.</p>
+          <p>Duis cursus. Maecenas ligula eros, blandit nec, pharetra at, semper at, magna. Nullam ac lacus. Nulla facilisi. Praesent viverra justo vitae neque. Praesent blandit adipiscing velit. Suspendisse potenti. Donec mattis, pede vel pharetra blandit, magna ligula faucibus eros, id euismod lacus dolor eget odio. Nam scelerisque. Donec non libero sed nulla mattis commodo. Ut sagittis. Donec nisi lectus, feugiat porttitor, tempor ac, tempor vitae, pede. Aenean vehicula velit eu tellus interdum rutrum. Maecenas commodo. Pellentesque nec elit. Fusce in lacus. Vivamus a libero vitae lectus hendrerit hendrerit.</p>
+        </div>
+      </div>
+
+
+    <!-- 
+    <h2>Receive:</h2>
+    <div id="log"></div>
+    -->
  </body>
 </html>
