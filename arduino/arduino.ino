@@ -36,6 +36,9 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   distanceCm = duration * SOUND_VELOCITY/2;
 
+  if (distanceCm > 300){
+    distanceCm = 300;
+  }
 
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();

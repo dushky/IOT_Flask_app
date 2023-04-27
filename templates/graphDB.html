@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POIT'2019</title>
+    <style type="text/css">           
+    </style>
+    <script src="static/libs/jquery-1.11.1.min.js"></script>
+    <script src="static/libs/plotly-latest.min.js"></script>
+
+  <script>
+    var data
+    window.addEventListener('message', function(event) {
+            // prijaté dáta
+            data = event.data;
+
+            var layout = {
+                  title: 'Graf záznamu s ID: '+data.message,
+                  xaxis: {
+                    title: '',
+                  },
+                  yaxis: {
+                    title: 'values',
+                  }
+                };
+            $.ajax({
+                type: "GET",
+              url: "/dbdata/"+data.message,
+              success:function(data) 
+              { console.log(data);  
+                data = JSON.parse(data);
+                n = Object.keys(data).length;
+        
+                x = [];
+                dist = [];
+                temp = [];
+                hum = [];
+        
+                for (var i=0; i< n; i++){
+                  x.push(i);
+                  dist.push(data[i].distance);
+                  temp.push(data[i].temperature);
+                  hum.push(data[i].humidity);
+                }
+                
+                let traceDist = {
+                    x: x,
+                    y: dist,
+                    name: "distance" };  
+
+                let traceTemp = {
+                    x: x,
+                    y: temp,
+                    name: "temperature" };  
+
+                let traceHum = {
+                    x: x,
+                    y: hum,
+                    name: "humidity" };   
+                traces = new Array();
+
+                traces.push(traceDist);
+                traces.push(traceTemp);
+                traces.push(traceHum);
+
+                Plotly.newPlot($('#plotdiv')[0], traces,layout);         
+              }
+            }).done(function( o ) {
+               // do something
+            }); 
+
+        }, false);
+  </script>
+</head>
+<body>
+ 
+    <div id="plotdiv" style="width:600px;height:250px;"></div>
+      
+</body>
+</html> 
