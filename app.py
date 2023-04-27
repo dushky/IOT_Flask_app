@@ -94,7 +94,11 @@ def graph():
 @app.route('/graphlive', methods=['GET', 'POST'])
 def graphlive():
     return render_template('graphlive.html', async_mode=socketio.async_mode)
-    
+
+@app.route('/graphDB', methods=['GET', 'POST'])
+def graphDB():
+    return render_template('graphDB.html', async_mode=socketio.async_mode)
+
 @app.route('/gaugelive', methods=['GET', 'POST'])
 def gaugelive():
     return render_template('gaugelive.html', async_mode=socketio.async_mode)
@@ -107,12 +111,22 @@ def db():
     rv = cursor.fetchall()
     return str(rv)    
 
+
+@app.route('/dbdataAll', methods=['GET', 'POST'])
+def dbdataAll():
+    db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM  sensors")
+    rv = cursor.fetchall()
+    return json.dumps(rv)
+  
+  
 @app.route('/dbdata/<string:num>', methods=['GET', 'POST'])
 def dbdata(num):
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
     cursor = db.cursor()
     print(num)
-    cursor.execute("SELECT data FROM  sensors WHERE id=%s", num)
+    cursor.execute("SELECT data FROM  sensors WHERE id=%s", [num])
     rv = cursor.fetchone()
     return str(rv[0])
     
