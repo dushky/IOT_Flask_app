@@ -90,12 +90,16 @@ def index():
 @app.route('/graph', methods=['GET', 'POST'])
 def graph():
     return render_template('graph.html', async_mode=socketio.async_mode)
+
+@app.route('/graphlive', methods=['GET', 'POST'])
+def graphlive():
+    return render_template('graphlive.html', async_mode=socketio.async_mode)
     
 @app.route('/db')
 def db():
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
     cursor = db.cursor()
-    cursor.execute('''SELECT  hodnoty FROM  graph WHERE id=1''')
+    cursor.execute('''SELECT  data FROM  sensors WHERE id=1''')
     rv = cursor.fetchall()
     return str(rv)    
 
@@ -104,7 +108,7 @@ def dbdata(num):
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
     cursor = db.cursor()
     print(num)
-    cursor.execute("SELECT hodnoty FROM  graph WHERE id=%s", num)
+    cursor.execute("SELECT data FROM  sensors WHERE id=%s", num)
     rv = cursor.fetchone()
     return str(rv[0])
     

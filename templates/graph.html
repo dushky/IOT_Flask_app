@@ -15,14 +15,11 @@
           title: 'Output variable',
           xaxis: {
             title: 'time',
-            range: [0,60]
           },
           yaxis: {
-            title: 'ys(t)',
-            range: [0,1]
+            title: 'values',
           }
         };
-
     
     $.ajax({
       type: "POST",
@@ -38,8 +35,10 @@
         yl = [];
 
         for (var i=0; i< n; i++){
-          xl.push(data[i].x);
-          yl.push(data[i].y); }
+          xl.push(i);
+          yl.push(data[i].distance);
+        }
+        
         let trace = [{
             x: xl,
             y: yl }];   

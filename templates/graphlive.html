@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POIT'2019</title>
+    <style type="text/css">           
+    </style>
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+    <script src="static/libs/jquery-1.11.1.min.js"></script>
+    <script src="static/libs/plotly-latest.min.js"></script>
+
+  <script>
+    
+   $(document).ready(function(){
+    namespace = '/test';    
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+    x = [];
+    dist = [];
+    temp = [];
+    hum = [];
+
+    var layout = {
+          title: 'Live graph',
+          xaxis: {
+          },
+          yaxis: {
+            title: 'values',
+            range: [-10, 100],
+          }
+        };
+    
+    let counter = 1;
+    socket.on('my_response', function(msg) {
+        let data = JSON.parse(msg.data);
+        x.push(counter);
+        dist.push(parseFloat(data.distance));
+        temp.push(parseFloat(data.temperature));
+        hum.push(parseFloat(data.humidity));
+
+        let traceDist = {
+            x: x,
+            y: dist,
+            name: "distance" };   
+
+        let traceTemp = {
+            x: x,
+            y: temp,
+            name: "temperature"
+             };   
+
+            
+        let traceHum = {
+            x: x,
+            y: hum,
+            name: "humidity" };   
+        
+        var traces = new Array();
+        traces.push(traceDist);
+        traces.push(traceTemp);
+        traces.push(traceHum);
+        Plotly.newPlot($('#plotdiv')[0], traces,layout); 
+        counter++;
+    });
+
+
+
+    
+  
+   });   
+
+  </script>
+</head>
+<body>
+ 
+    <div id="plotdiv" style="width:600px;height:250px;"></div>
+      
+</body>
+</html> 
