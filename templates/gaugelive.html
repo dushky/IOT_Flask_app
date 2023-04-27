@@ -1,0 +1,165 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <title>Flask-SocketIO Test</title>
+   <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+   <script src="static/libs/gauge.min.js"></script>
+   <script type="text/javascript" charset="utf-8">
+   //https://canvas-gauges.com/documentation/user-guide/configuration
+     $(document).ready(function() {    
+      var gaugeDist = new RadialGauge({
+          renderTo: 'canvasDist',
+          width: 300,
+          height: 300,
+          units: "cm",
+          minValue: 0,
+          maxValue: 200,
+          majorTicks: [
+              "0",
+              "10",
+              "20",
+              "30",
+              "40",
+              "50",
+              "60",
+              "70",
+              "80",
+              "90",
+              "100",
+              "110",
+              "120",
+              "130",
+              "140",
+              "150",
+              "160",
+              "170",
+              "180",
+              "190",
+              "200",
+          ],
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 200,
+                  "color": "rgba(46,119,180,.75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: true,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 1500,
+          animationRule: "linear"
+      });
+      gaugeDist.draw();
+      gaugeDist.value = "0";
+
+      var gaugeTemp = new RadialGauge({
+          renderTo: 'canvasTemp',
+          width: 300,
+          height: 300,
+          units: "°C",
+          minValue: -10,
+          maxValue: 50,
+          majorTicks: [
+              "-10",
+              "-5",
+              "0",
+              "5",
+              "10",
+              "15",
+              "20",
+              "25",
+              "30",
+              "35",
+              "40",
+              "45",
+              "50",
+          ],
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 100,
+                  "color": "rgba(246,128,15,.75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: true,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 1500,
+          animationRule: "linear"
+      });
+      gaugeTemp.draw();
+      gaugeTemp.value = "0";
+
+      
+      var gaugeHum = new RadialGauge({
+          renderTo: 'canvasHum',
+          width: 300,
+          height: 300,
+          units: "humidity %",
+          minValue: 0,
+          maxValue: 100,
+
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 100,
+                  "color": "rgba(44,160,44,.75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: true,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 1500,
+          animationRule: "linear"
+      });
+      gaugeHum.draw();
+      gaugeHum.value = "0";
+      
+      namespace = '/test';
+      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+      socket.on('my_response', function(msg) {
+            let data = JSON.parse(msg.data);
+            gaugeDist.value = data.distance;  
+            gaugeDist.draw(); 
+
+            gaugeTemp.value = data.temperature;  
+            gaugeTemp.draw(); 
+            
+            gaugeHum.value = data.humidity;  
+            gaugeHum.draw(); 
+        });
+
+      });
+    </script>
+ </head>
+ <body>
+
+  <canvas id="canvasDist"></canvas>
+  <canvas id="canvasTemp"></canvas>
+  <canvas id="canvasHum"></canvas>
+ </body>
+</html>

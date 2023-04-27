@@ -95,6 +95,10 @@ def graph():
 def graphlive():
     return render_template('graphlive.html', async_mode=socketio.async_mode)
     
+@app.route('/gaugelive', methods=['GET', 'POST'])
+def gaugelive():
+    return render_template('gaugelive.html', async_mode=socketio.async_mode)
+
 @app.route('/db')
 def db():
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
