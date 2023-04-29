@@ -13,6 +13,8 @@ const int echoPin = 11;
 long duration;
 float distanceCm;
 
+unsigned long interval=1000;
+
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
@@ -24,6 +26,18 @@ void setup() {
 }
 
 void loop() {
+
+  if(Serial.available() > 0) {
+    int serialData = Serial.parseInt();  
+    if (serialData > 100) {              
+      interval = serialData;
+    }
+  }
+  
+//  currentMillis = millis();
+  //Serial.flush();
+  //Serial.println(interval);
+
   // Clears the trigPin
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -47,7 +61,7 @@ void loop() {
   String(distanceCm) + "," +
   String(temperature) + "," + 
   String(humidity);
-
   Serial.println(output);
-  delay(2000);
+  delay(interval);
+
 }

@@ -2,10 +2,7 @@ from threading import Lock
 from flask import Flask, render_template, session, request, jsonify, url_for
 from flask_socketio import SocketIO, emit, disconnect
 import MySQLdb       
-import math
-import time
 import configparser as ConfigParser
-import random
 import serial
 import json
 
@@ -40,32 +37,42 @@ def background_thread(args):
         distance = serialData[0]
         temperature = serialData[1]
         humidity = serialData[2]
+#        print(ser.readline().decode())
+
         if args:
             A = dict(args).get('A')
             dbV = dict(args).get('db_value')
+            ser.write(str(int(A)*500).encode('ascii'))
         else:
             A = 1
             dbV = 'nieco'
 
-        #print A
-        print(dbV) 
-        print(args)  
-        socketio.sleep(2)
-        count += 1
-        dataCounter +=1
-        prem = random.random()
+        print("argument A: "+ str(A))
+        #print(dbV) 
+        #print(args)  
+        print(serialData)
+
+        #socketio.sleep(int(A))
+        socketio.sleep(1)
+        
         if dbV == 'start':
+            count += 1
+            dataCounter +=1
+
             dataDict = {
                 "distance": distance,
                 "temperature": temperature,
                 "humidity": humidity
                 }
+            
             dataList.append(dataDict)
+            socketio.emit('my_response',
+                {'data': json.dumps({"distance": distance, "temperature": temperature, "humidity": humidity}),
+                'count': count},
+                namespace='/test')  
         else:
             if len(dataList)>0:
-                print(str(dataList))
                 fuj = str(dataList).replace("'", "\"")
-                print(fuj)
                 cursor = db.cursor()
                 cursor.execute("SELECT MAX(id) FROM sensors")
                 maxIdFromDB = cursor.fetchone()
@@ -82,10 +89,7 @@ def background_thread(args):
 
             dataList = []
             dataCounter = 0
-        socketio.emit('my_response',
-                      {'data': json.dumps({"distance": distance, "temperature": temperature, "humidity": humidity}),
-                        'count': count},
-                      namespace='/test')  
+
     db.close()
 
 @app.route('/')
@@ -133,7 +137,6 @@ def dbdataAll():
 def dbdata(num):
     db = MySQLdb.connect(host=myhost,user=myuser,passwd=mypasswd,db=mydb)
     cursor = db.cursor()
-    print(num)
     cursor.execute("SELECT data FROM  sensors WHERE id=%s", [num])
     rv = cursor.fetchone()
     return str(rv[0])
