@@ -8,9 +8,29 @@
    <link rel="stylesheet" href="static/libs/style.css">
    <script src="static/libs/jquery-3.2.1.min.js"></script>
    <script src="static/libs/jquery-ui.min.js"></script>
+   <script src="static/libs/plotly-latest.min.js"></script>
+   <script src="static/libs/gauge.min.js"></script>
+
 
 <script type="text/javascript" charset="utf-8">
+    graph_live_x = [];
+    graph_live_dist = [];
+    graph_live_temp = [];
+    graph_live_hum = [];
 
+    var layout = {
+        //title: 'Live graph',
+        xaxis: {
+        },
+        yaxis: {
+            title: 'values',
+//            range: [-10, 100],
+        }
+    };
+
+    var gaugeDist = null
+    var gaugeTemp = null
+    var gaugeHum = null
     $(function() {
         $("#tabs").tabs({
             event: "click"
@@ -24,6 +44,8 @@
       success:function(data) 
       { 
         data = JSON.parse(data);        
+        console.log(data);
+
         $('#db-values-table').html(
         '<tr><th width="40px">id</th><th>hodnoty</th><th>akcia</th></tr>');
         for(item of data){
@@ -36,7 +58,9 @@
                         item[1]+
                     '</div></td>'+
                     '<td>'+
-                        '<button class="ui-button ui-widget ui-corner-all" onClick="plotGraphFromDB('+item[0]+')" style="background-color: #00cc66">vykresliť</button>'+
+                        '<button class="ui-button ui-widget ui-corner-all action-button" onClick="plotGraphFromDB('+item[0]+')" style="background-color: #00cc66">vykresliť</button>'+
+                        
+                        '<button class="ui-button ui-widget ui-corner-all action-button" onClick="printDataFromDB('+item[0]+')" style="background-color: #00ccff">vypísať</button>'+
                     '</td>'+
                 '</tr>')
                 .html(); 
@@ -47,17 +71,43 @@
     });  
     }
 
+    function getOneDBValue(id) {
+        $.ajax({
+            type: "GET",
+            url: "/dbdata/"+String(id),
+            success:function(data) 
+              {
+                console.log(data);
+            }
+            }).done(function( o ) {
+               
+            }); 
+    }
+
+    function printDataFromDB(id) {
+        $.ajax({
+            type: "GET",
+            url: "/dbdata/"+String(id),
+            success:function(data) 
+              {
+                console.log(data);
+                $("#db-one-record").append(data)
+            }
+            }).done(function( o ) {       
+        }); 
+    }
+
     function plotGraphFromDB(id) {
             var iframe = document.getElementById('db-graph-iframe');
             var data = {message: id};
             iframe.contentWindow.postMessage(data, '*');
         }
         
-        function plotGraphFromFile(id) {
-            var iframe = document.getElementById('file-graph-iframe');
-            var data = {message: id};
-            iframe.contentWindow.postMessage(data, '*');
-        }
+    function plotGraphFromFile(id) {
+        var iframe = document.getElementById('file-graph-iframe');
+        var data = {message: id};
+        iframe.contentWindow.postMessage(data, '*');
+    }
 
     function getFileValues() {
         $.ajax({
@@ -92,99 +142,292 @@
     });  
     }
     
-     $(document).ready(function() {
-      namespace = '/test';
-      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    function initializeConnection() {
+        $('#content').show();
+        $('#openButton').hide();
 
-      socket.on('connect', function() {
-        socket.emit('my_event', {data: 'I\'m connected!', value: 1}); });
+        namespace = '/test';
 
-      socket.on('my_response', function(msg) {
-        let data = JSON.parse(msg.data);
-        $('#live-data').append('<li> Received #'+msg.count+': '+ msg.data +'</li>').html(); 
+        socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+        
+        
+        socket.on('connect', function() {
+            socket.emit('my_event', {data: 'I\'m connected!', value: 1}); });
+
+        socket.on('disconnect_response', function(msg) {
+            $('#live-data').append('<li>'+msg.data+'</li>').html(); 
+        });
+
+        let counter = 1
+        socket.on('my_response', function(msg) {
+            if (msg.code === 2) {
+                alert("disconnected");
+                //zavrieť, odpojene
+            }else{
+                let data = JSON.parse(msg.data);
+                $('#live-data').append('<li> Received #'+msg.count+': '+ msg.data +'</li>').html(); 
+
+                let graph_live_data = JSON.parse(msg.data);
+                graph_live_x.push(counter);
+                graph_live_dist.push(parseFloat(data.distance));
+                graph_live_temp.push(parseFloat(data.temperature));
+                graph_live_hum.push(parseFloat(data.humidity));
+
+                let graph_live_traceDist = {
+                    x: graph_live_x,
+                    y: graph_live_dist,
+                    name: "distance" };   
+
+                let graph_live_traceTemp = {
+                    x: graph_live_x,
+                    y: graph_live_temp,
+                    name: "temperature"
+                    };   
+
+                    
+                let graph_live_traceHum = {
+                    x: graph_live_x,
+                    y: graph_live_hum,
+                    name: "humidity" };   
+                
+                var graph_live_traces = new Array();
+                graph_live_traces.push(graph_live_traceDist);
+                graph_live_traces.push(graph_live_traceTemp);
+                graph_live_traces.push(graph_live_traceHum);
+                Plotly.newPlot($('#graphLive')[0], graph_live_traces,layout); 
+                counter++;
+
+                gaugeDist.value = data.distance;  
+
+                gaugeTemp.value = data.temperature;  
+
+                gaugeHum.value = data.humidity;  
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        $('#content').hide();
+
+        $('form#emit').submit(function(event) {
+            socket.emit('my_event', {value: $('#emit_value').val()});
+            return false; });
+        $('#buttonVal').click(function(event) {
+            socket.emit('db_event', {value: $('#buttonVal').val()});
+            if ($(this).val() == "start") {
+                $(this).val("stop");
+                $(this).text("Stop");
+            }
+            else {
+                $(this).val("start");
+                $(this).text("Start");
+            }
+            return false; }); 
+
+        $('form#disconnect').submit(function() {
+            event.preventDefault();
+            
+            $('#content').hide();
+
+            socket.disconnect();
+            return false; });         
+        
+
+        gaugeDist = new RadialGauge({
+          renderTo: 'canvasDist',
+          width: 300,
+          height: 300,
+          units: "cm",
+          minValue: 0,
+          maxValue: 300,
+          majorTicks: [
+              "0",
+              "25",
+              "50",
+              "75",
+              "100",
+              "125",
+              "150",
+              "175",
+              "200",
+              "225",
+              "250",
+              "275",
+              "300",
+          ],
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 300,
+                  "color": "rgba(46,119,180,.75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: true,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 700,
+          animationRule: "linear"
       });
+      gaugeDist.draw();
 
-      $('form#emit').submit(function(event) {
-          socket.emit('my_event', {value: $('#emit_value').val()});
-          return false; });
-      $('#buttonVal').click(function(event) {
-          //console.log($('#buttonVal').val());
-          socket.emit('db_event', {value: $('#buttonVal').val()});
-          if ($(this).val() == "start") {
-            $(this).val("stop");
-            $(this).text("Stop");
-          }
-          else {
-            $(this).val("start");
-            $(this).text("Start");
-          }
-          return false; }); 
-      $('form#disconnect').submit(function(event) {
-          socket.emit('disconnect_request');
-          return false; });         
+    gaugeTemp = new RadialGauge({
+          renderTo: 'canvasTemp',
+          width: 300,
+          height: 300,
+          units: "°C",
+          minValue: -10,
+          maxValue: 50,
+          majorTicks: [
+              "-10",
+              "-5",
+              "0",
+              "5",
+              "10",
+              "15",
+              "20",
+              "25",
+              "30",
+              "35",
+              "40",
+              "45",
+              "50",
+          ],
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 100,
+                  "color": "rgba(246,128,15,.75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: true,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 700,
+          animationRule: "linear"
       });
+      gaugeTemp.draw();
+
+      
+    gaugeHum = new RadialGauge({
+          renderTo: 'canvasHum',
+          width: 300,
+          height: 300,
+          units: "humidity %",
+          minValue: 0,
+          maxValue: 100,
+
+          minorTicks: 2,
+          strokeTicks: true,
+          highlights: [
+              {
+                  "from": 0,
+                  "to": 100,
+                  "color": "rgba(44,160,44,.75)"
+              }
+          ],
+          colorPlate: "#fff",
+          borderShadowWidth: 0,
+          borders: true,
+          needleType: "arrow",
+          needleWidth: 2,
+          needleCircleSize: 7,
+          needleCircleOuter: true,
+          needleCircleInner: false,
+          animationDuration: 700,
+          animationRule: "linear"
+      });
+      gaugeHum.draw();
+            
+    });
     </script>
  </head>
  <body>
 
         
 
-    <h1>IOT aplikácia pre vzdialenosť, teplotu a vlhkosť</h1>
-    <form id="emit" method="POST" action='#'>
-        <input type="text" name="emit_value" id="emit_value" placeholder="frekvencia v sekundách">
-        <input type="submit" value="nastaviť">
-    </form>
-    <button id="buttonVal" type="submit" value="start">Start</button>
-    <form id="disconnect" method="POST" action="#">
-        <input type="submit" value="Disconnect">
-    </form> 
+    <button id="openButton" onClick="initializeConnection()" class="ui-button ui-widget ui-corner-all" style="background-color: #a694ff">OPEN</button>
+    <div id="content">
+        <h1>IOT aplikácia pre vzdialenosť, teplotu a vlhkosť</h1>
+        <div id="control-ui">
+            <form id="emit" method="POST" action='#'>
+                <input id="emit_value" type="text" name="emit_value" placeholder="frekvencia v sekundách">
+                <input id="emit_submit" type="submit" value="nastaviť">
+            </form>
+            <button id="buttonVal" type="submit" value="start">Start</button>
 
-    <div id="tabs">
-        <ul>
-          <li><a href="#tabs-1">Výpis regulovaných hodnôt</a></li>
-          <li><a href="#tabs-2">Live graf</a></li>
-          <li><a href="#tabs-3">Live ciferníky</a></li>
-          <li onClick="getDBValues()"><a href="#tabs-4">Data z DB</a></li>
-          <li onClick="getFileValues()"><a href="#tabs-5">Data zo súboru</a></li>
-        </ul>
+            <form id="disconnect" method="POST" action="#">
+                <button class="ui-button ui-widget ui-corner-all" type="submit" value="CLOSE" style="background-color: rgb(255, 43, 71)">CLOSE </button>
+            </form> 
+        </div>
+        <div id="tabs">
+            <ul>
+            <li><a href="#tabs-1">Výpis regulovaných hodnôt</a></li>
+            <li><a href="#tabs-2">Live graf</a></li>
+            <li><a href="#tabs-3">Live ciferníky</a></li>
+            <li onClick="getDBValues()"><a href="#tabs-4">Data z DB</a></li>
+            <li onClick="getFileValues()"><a href="#tabs-5">Data zo súboru</a></li>
+            </ul>
+            
+            <div id="tabs-1">
+            <h3>HODNOTY</h3>
+                <ul id="live-data">
+                </ul>
+            </div>
+
+            <div id="tabs-2">
+                <h3>Live graf</h3>
+                <div id="graphLive" style="width:600px;height:250px;"></div>
+
+            <!--<iframe src="/graphlive" width="640" height="320"></iframe> -->
+
+            </div>
+
+
+            <div id="tabs-3">
+                <h3>Live ciferníky</h3>
+               <!-- <iframe src="/gaugelive" width="960" height="320"></iframe> -->
+               <canvas id="canvasDist"></canvas>
+               <canvas id="canvasTemp"></canvas>
+               <canvas id="canvasHum"></canvas>
+            </div>
+
+                
+            <div id="tabs-4">
+                <h3>Dáta z databázy</h3>
+                <table id="db-values-table">
+                </table>
+
+                <div id="db-one-record">
+
+                </div>
+
+                <iframe id="db-graph-iframe" src="/graphDB"  width="640" height="320"></iframe>
+            </div>
         
-        <div id="tabs-1">
-          <h3>HODNOTY</h3>
-              <ul id="live-data">
-              </ul>
+            <div id="tabs-5">
+                <h3>Data zo súboru</h3>
+                <table id="file-values-table">
+                </table>
+    
+                <iframe id="file-graph-iframe" src="/graphFile"  width="640" height="320"></iframe>
+    
+            </div>   
+        
         </div>
-
-        <div id="tabs-2">
-            <h3>Live graf</h3>
-            <iframe src="/graphlive" width="640" height="320"></iframe>
-        </div>
-        <div id="tabs-3">
-            <h3>Live ciferníky</h3>
-            <iframe src="/gaugelive" width="960" height="320"></iframe>
-        </div>
-        <div id="tabs-4">
-            <h3>Dáta z databázy</h3>
-            <table id="db-values-table">
-
-            </table>
-
-            <iframe id="db-graph-iframe" src="/graphDB"  width="640" height="320"></iframe>
-        </div>
-
-        <div id="tabs-5">
-            <h3>Data zo súboru</h3>
-            <table id="file-values-table">
-            </table>
- 
-            <iframe id="file-graph-iframe" src="/graphFile"  width="640" height="320"></iframe>
- 
-        </div>      
     </div>
-
-
-    <!-- 
-    <h2>Receive:</h2>
-    <div id="log"></div>
-    -->
  </body>
 </html>

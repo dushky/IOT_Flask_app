@@ -61,7 +61,9 @@ void loop() {
   String(distanceCm) + "," +
   String(temperature) + "," + 
   String(humidity);
+  
   Serial.println(output);
+
   delay(interval);
 
 }

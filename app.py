@@ -47,9 +47,9 @@ def background_thread(args):
             A = 1
             dbV = 'nieco'
 
-        print("argument A: "+ str(A))
-        #print(dbV) 
-        #print(args)  
+        #print("argument A: "+ str(A))
+        print(dbV) 
+        print(args)  
         print(serialData)
 
         #socketio.sleep(int(A))
@@ -158,8 +158,7 @@ def filedata(num):
 def test_message(message):   
     session['receive_count'] = session.get('receive_count', 0) + 1 
     session['A'] = message['value']    
-    emit('my_response',
-         {'data': message['value'], 'count': session['receive_count']})
+    #emit('my_response', {'data': message['value'], 'count': session['receive_count']})
 
 @socketio.on('db_event', namespace='/test')
 def db_message(message):   
@@ -171,8 +170,8 @@ def db_message(message):
 @socketio.on('disconnect_request', namespace='/test')
 def disconnect_request():
     session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']})
+    emit('disconnect_response',
+         {'data': 'Disconnected!', 'count': session['receive_count'], 'code':2})
     disconnect()
 
 @socketio.on('connect', namespace='/test')
