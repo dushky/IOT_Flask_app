@@ -97,6 +97,19 @@
         }); 
     }
 
+    function printDataFromFile(id) {
+        $.ajax({
+            type: "GET",
+            url: "/filedata/"+String(id),
+            success:function(data) 
+              {
+                console.log(data);
+                $("#file-one-record").append(data)
+            }
+            }).done(function( o ) {       
+        }); 
+    }
+
     function plotGraphFromDB(id) {
             var iframe = document.getElementById('db-graph-iframe');
             var data = {message: id};
@@ -130,7 +143,9 @@
                         item+
                     '</div></td>'+
                     '<td>'+
-                        '<button class="ui-button ui-widget ui-corner-all" onClick="plotGraphFromFile('+counter+')" style="background-color: #00cc66">vykresliť</button>'+
+                        '<button class="ui-button ui-widget ui-corner-all action-button" onClick="plotGraphFromFile('+counter+')" style="background-color: #00cc66">vykresliť</button>'+
+
+                        '<button class="ui-button ui-widget ui-corner-all action-button" onClick="printDataFromFile('+counter+')" style="background-color: #00ccff">vypísať</button>'+
                     '</td>'+
                 '</tr>')
                 .html(); 
@@ -410,21 +425,16 @@
                 <h3>Dáta z databázy</h3>
                 <table id="db-values-table">
                 </table>
-
-                <div id="db-one-record">
-
-                </div>
-
                 <iframe id="db-graph-iframe" src="/graphDB"  width="640" height="320"></iframe>
+                <div id="db-one-record"></div>
             </div>
         
             <div id="tabs-5">
-                <h3>Data zo súboru</h3>
+                <h3>Dáta zo súboru</h3>
                 <table id="file-values-table">
                 </table>
-    
                 <iframe id="file-graph-iframe" src="/graphFile"  width="640" height="320"></iframe>
-    
+                <div id="file-one-record"></div>
             </div>   
         
         </div>
